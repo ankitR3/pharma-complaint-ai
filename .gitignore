@@ -1,0 +1,35 @@
+# Virtual environment
+venv/
+server/venv/
+.venv/
+env/
+
+# Node modules & build artifacts
+node_modules/
+web/node_modules/
+dist/
+web/dist/
+
+# Python cache & databases
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.db
+*.sqlite
+*.sqlite3
+sql_app.db
+
+# Environment variables & secrets
+.env
+*.env
+.env.local
+
+# IDE & OS files
+.DS_Store
+.vscode/
+.idea/
+
+assignment.md
+implement.md

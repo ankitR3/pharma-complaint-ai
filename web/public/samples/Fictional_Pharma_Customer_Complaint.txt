@@ -1,0 +1,33 @@
+===================================================================
+PHARMACEUTICAL CUSTOMER COMPLAINT REPORT
+Quality Assurance & Risk Management Division
+===================================================================
+
+Date: 29 March 2026
+Complaint Ref: CMP-PHARMA-2026-042
+
+ORIGIN DETAILS:
+Customer Name: Apollo Pharmacy Ltd.
+Complaint Source: Customer Quality Audit Report / Direct Email
+Contact Person: Dr. S. Rao (Head Pharmacist)
+
+PRODUCT & BATCH IDENTIFICATION:
+Product Name: Amoxicillin Capsules
+Product Strength: 500 mg (USP Grade)
+Batch / Lot Number: BMX240602
+Affected Quantity: 48 capcules
+Manufacturing Date: March 2026
+Expiry Date: February 2028
+
+FACILITY & MATERIAL IMPACT:
+Originating Site Block: Manufacturing (Block A)
+Impacted NPM: Primary Packaging (Bottle & Blister Seal)
+
+DEFECT DESCRIPTION & COMPLAINT DETAILS:
+Apollo Pharmacy reported 48 discolored capsules inside a sealed primary bottle. 
+Visual inspection shows yellowish spot discoloration on gelatin capsule shells.
+Requesting immediate QA root cause investigation, batch quarantine, and product replacement.
+
+===================================================================
+END OF COMPLAINT REPORT
+===================================================================
