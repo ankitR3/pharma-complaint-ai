@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { populateExtractedComplaint, updatePartialFields } from '../store/formSlice';
-import { setAuditResults } from '../store/aiSlice';
-import { Paperclip, CheckCircle2, User, FlaskConical, FileText, UploadCloud, Info } from 'lucide-react';
-import { parseTextDynamically } from '../cards/parseTextDynamicallyCard';
+import { CheckCircle2, User, FlaskConical, FileText, UploadCloud, Info } from 'lucide-react';
 import { handleSendPrompt } from '../cards/SendPromptCard';
 import { handleFileUpload } from '../cards/FileUploadCard';
 

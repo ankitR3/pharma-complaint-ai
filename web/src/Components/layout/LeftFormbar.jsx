@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setStatus, resetForm } from '../store/formSlice';
+import { resetForm } from '../store/formSlice';
 import { resetAiState } from '../store/aiSlice';
 import { FlaskConical, Download, RotateCcw, CheckCircle2, AlertCircle, X, Database, Lock, Search, ShieldCheck, Save, Eye } from 'lucide-react';
 import { handleDownloadPDF } from '../cards/DownloadPDFCard';
