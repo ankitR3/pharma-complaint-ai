@@ -2,6 +2,11 @@ import { populateExtractedComplaint } from '../store/formSlice';
 import { parseTextDynamically } from './parseTextDynamicallyCard';
 
 function mapBackendFieldsToRedux(f, current = {}) {
+    const todayStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    let dateVal = f.complaint_date ?? f.complaintDate ?? current.complaintDate ?? '';
+    if (!dateVal || dateVal === 'Not Provided' || dateVal === 'N/A') {
+        dateVal = todayStr;
+    }
     return {
         complaintSource: f.complaint_source ?? f.complaintSource ?? current.complaintSource ?? '',
         customerName: f.customer_name ?? f.customerName ?? current.customerName ?? '',
@@ -14,7 +19,7 @@ function mapBackendFieldsToRedux(f, current = {}) {
         originatingBlock: f.originating_site_block ?? f.originating_block ?? f.originatingBlock ?? current.originatingBlock ?? '',
         impactedNpm: f.impacted_npm ?? f.impactedNpm ?? current.impactedNpm ?? '',
         complaintCategory: f.complaint_category ?? f.complaintCategory ?? current.complaintCategory ?? '',
-        complaintDate: f.complaint_date ?? f.complaintDate ?? current.complaintDate ?? '',
+        complaintDate: dateVal,
         complaintDescription: f.complaint_description ?? f.complaintDescription ?? current.complaintDescription ?? '',
         suggestedSeverity: f.suggested_severity ?? f.severity ?? f.suggestedSeverity ?? current.suggestedSeverity ?? '',
         suggestedNextAction: f.suggested_next_action ?? f.suggested_action ?? f.suggestedNextAction ?? current.suggestedNextAction ?? '',

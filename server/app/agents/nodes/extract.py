@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 from groq import Groq
 from app.core.config import settings
 from app.agents.state import ComplaintState
@@ -23,7 +24,7 @@ Extract the following fields in strict JSON format:
   "originating_site_block": "Manufacturing or Packaging or Quality Control",
   "impacted_npm": "Impacted Non-Product Materials (e.g. Primary Packaging (Bottle), HDPE Drum)",
   "complaint_category": "Defect classification (e.g. Product Defect - Discoloration, Foreign Matter Contamination)",
-  "complaint_date": "Date of complaint report or 'Not Provided'",
+  "complaint_date": "Date of complaint report. If not explicitly specified in the text, use today's date format (e.g. 'July 30, 2026')",
   "complaint_description": "Synthesized formal QMS complaint summary",
   "suggested_severity": "Critical or Major or Minor",
   "suggested_next_action": "Recommended QA investigation action",
@@ -35,6 +36,7 @@ Return ONLY valid JSON.
 
 def extract_node(state: ComplaintState) -> ComplaintState:
     raw_text = state.get("raw_text", "")
+    today_str = datetime.now().strftime("%B %d, %Y")
     
     extracted = {
         "complaint_source": "Pharmacy",
@@ -48,7 +50,7 @@ def extract_node(state: ComplaintState) -> ComplaintState:
         "originating_site_block": "Manufacturing",
         "impacted_npm": "Packaging",
         "complaint_category": "Product Quality Issue",
-        "complaint_date": "Not Provided",
+        "complaint_date": today_str,
         "complaint_description": raw_text,
         "suggested_severity": "Major",
         "suggested_next_action": "Route to QA Investigation",
@@ -73,8 +75,12 @@ def extract_node(state: ComplaintState) -> ComplaintState:
         except Exception as e:
             logger.error(f"Groq Extraction LLM call failed: {e}")
 
+    if not extracted.get("complaint_date") or extracted.get("complaint_date") in ["Not Provided", "N/A", "Unknown", "None", ""]:
+        extracted["complaint_date"] = today_str
+
     state["current_fields"] = extracted
     state["updated_field_keys"] = list(extracted.keys())
     state["copilot_message"] = f"Complaint parsed successfully. I've extracted the product details, mapped the batch information, and generated an initial risk assessment."
     
     return state
+
