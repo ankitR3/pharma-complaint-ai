@@ -22,10 +22,12 @@ extraction_graph = extract_builder.compile()
 update_builder = StateGraph(ComplaintState)
 update_builder.add_node("update_state", update_state_node)
 update_builder.add_node("risk_classifier", risk_classifier_node)
+update_builder.add_node("duplicate_check", duplicate_check_node)
 
 update_builder.set_entry_point("update_state")
 update_builder.add_edge("update_state", "risk_classifier")
-update_builder.add_edge("risk_classifier", END)
+update_builder.add_edge("risk_classifier", "duplicate_check")
+update_builder.add_edge("duplicate_check", END)
 
 update_graph = update_builder.compile()
 
@@ -35,13 +37,17 @@ def run_extraction_agent(raw_text: str) -> dict:
         "user_prompt": None,
         "current_fields": {},
         "updated_field_keys": [],
-        "copilot_message": ""
+        "copilot_message": "",
+        "duplicate_flag": False,
+        "duplicate_notes": ""
     }
     result = extraction_graph.invoke(initial_state)
     return {
         "extracted_fields": result["current_fields"],
         "updated_field_keys": result["updated_field_keys"],
-        "copilot_message": result["copilot_message"]
+        "copilot_message": result["copilot_message"],
+        "duplicate_flag": result.get("duplicate_flag", False),
+        "duplicate_notes": result.get("duplicate_notes", "")
     }
 
 def run_update_agent(user_prompt: str, current_fields: dict) -> dict:
@@ -50,11 +56,15 @@ def run_update_agent(user_prompt: str, current_fields: dict) -> dict:
         "user_prompt": user_prompt,
         "current_fields": current_fields,
         "updated_field_keys": [],
-        "copilot_message": ""
+        "copilot_message": "",
+        "duplicate_flag": False,
+        "duplicate_notes": ""
     }
     result = update_graph.invoke(initial_state)
     return {
         "extracted_fields": result["current_fields"],
         "updated_field_keys": result["updated_field_keys"],
-        "copilot_message": result["copilot_message"]
+        "copilot_message": result["copilot_message"],
+        "duplicate_flag": result.get("duplicate_flag", False),
+        "duplicate_notes": result.get("duplicate_notes", "")
     }

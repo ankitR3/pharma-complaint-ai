@@ -31,7 +31,9 @@ def extract_complaint(payload: ComplaintExtractRequest):
         success=True,
         message=result["copilot_message"],
         extracted_fields=ComplaintFields(**result["extracted_fields"]),
-        updated_field_keys=result["updated_field_keys"]
+        updated_field_keys=result["updated_field_keys"],
+        duplicate_flag=result.get("duplicate_flag", False),
+        duplicate_notes=result.get("duplicate_notes", "")
     )
 
 @router.post("/update", response_model=ComplaintExtractResponse)
@@ -41,7 +43,9 @@ def update_complaint(payload: ComplaintUpdateRequest):
         success=True,
         message=result["copilot_message"],
         extracted_fields=ComplaintFields(**result["extracted_fields"]),
-        updated_field_keys=result["updated_field_keys"]
+        updated_field_keys=result["updated_field_keys"],
+        duplicate_flag=result.get("duplicate_flag", False),
+        duplicate_notes=result.get("duplicate_notes", "")
     )
 
 @router.post("/upload", response_model=ComplaintExtractResponse)
@@ -57,5 +61,7 @@ async def upload_document(file: UploadFile = File(...)):
         success=True,
         message=custom_msg,
         extracted_fields=ComplaintFields(**result["extracted_fields"]),
-        updated_field_keys=result["updated_field_keys"]
+        updated_field_keys=result["updated_field_keys"],
+        duplicate_flag=result.get("duplicate_flag", False),
+        duplicate_notes=result.get("duplicate_notes", "")
     )

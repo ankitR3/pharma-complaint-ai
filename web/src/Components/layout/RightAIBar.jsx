@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { populateExtractedComplaint, updatePartialFields } from '../store/formSlice';
-import { Paperclip, CheckCircle2, User, FlaskConical, FileText } from 'lucide-react';
+import { setAuditResults } from '../store/aiSlice';
+import { Paperclip, CheckCircle2, User, FlaskConical, FileText, UploadCloud } from 'lucide-react';
 
 // Dynamic Text Parser - Zero hardcoded string fallbacks
 function parseTextDynamically(text = '', current = {}) {
@@ -35,9 +36,10 @@ function parseTextDynamically(text = '', current = {}) {
     const blockMatch = t.match(/(?:originating\s*site\s*block|site\s*block|block)\s*:?\s*([A-Za-z0-9\s\-_]+)/i);
     const npmMatch = t.match(/(?:impacted\s*non-product\s*materials|impacted\s*npm|npm|materials?)\s*:?\s*([A-Za-z0-9\s\-_()]+)/i);
 
-    // Extract Defect / Category
+    // Extract Defect / Category & Complaint Date
     const isCritical = /discoloration|contamination|leak|foreign|toxin|impurity|death|hazard|seal failure/i.test(t);
     const categoryMatch = t.match(/(?:complaint\s*category|category|defect\s*type)\s*:?\s*([A-Za-z0-9\s\-_]+)/i);
+    const dateMatch = t.match(/(?:complaint\s*date|date\s*of\s*complaint|reported\s*date|date)\s*:?\s*([A-Za-z0-9\s,]{3,15}\d{4})/i);
 
     const parsedCustomer = custMatch ? custMatch[1].trim() : (current.customerName || 'Customer Report');
     const parsedProduct = prodMatch ? prodMatch[1].trim() : (current.productName || 'Pharma Product');
@@ -49,6 +51,7 @@ function parseTextDynamically(text = '', current = {}) {
     const parsedBlock = blockMatch ? blockMatch[1].trim() : (current.originatingBlock || 'Manufacturing');
     const parsedNpm = npmMatch ? npmMatch[1].trim() : (current.impactedNpm || 'Primary Packaging');
     const parsedCategory = categoryMatch ? categoryMatch[1].trim() : (isCritical ? 'Product Defect - Discoloration' : 'Quality Inquiry');
+    const parsedDate = dateMatch ? dateMatch[1].trim() : (current.complaintDate || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
 
     const severity = isCritical ? 'Major' : 'Minor';
     const nextAction = `Route to QA Investigation & Issue Replacement (Batch: ${parsedBatch || 'N/A'})`;
@@ -66,6 +69,7 @@ function parseTextDynamically(text = '', current = {}) {
         originatingBlock: parsedBlock,
         impactedNpm: parsedNpm,
         complaintCategory: parsedCategory,
+        complaintDate: parsedDate,
         complaintDescription: t.trim(),
         suggestedSeverity: severity,
         suggestedNextAction: nextAction,
@@ -87,6 +91,7 @@ function mapBackendFieldsToRedux(f, current = {}) {
         originatingBlock: f.originating_site_block ?? f.originating_block ?? f.originatingBlock ?? current.originatingBlock ?? '',
         impactedNpm: f.impacted_npm ?? f.impactedNpm ?? current.impactedNpm ?? '',
         complaintCategory: f.complaint_category ?? f.complaintCategory ?? current.complaintCategory ?? '',
+        complaintDate: f.complaint_date ?? f.complaintDate ?? current.complaintDate ?? '',
         complaintDescription: f.complaint_description ?? f.complaintDescription ?? current.complaintDescription ?? '',
         suggestedSeverity: f.suggested_severity ?? f.severity ?? f.suggestedSeverity ?? current.suggestedSeverity ?? '',
         suggestedNextAction: f.suggested_next_action ?? f.suggested_action ?? f.suggestedNextAction ?? current.suggestedNextAction ?? '',
@@ -107,6 +112,7 @@ function mapReduxFieldsToBackend(rf) {
         originating_site_block: rf.originatingBlock || null,
         impacted_npm: rf.impactedNpm || null,
         complaint_category: rf.complaintCategory || null,
+        complaint_date: rf.complaintDate || null,
         complaint_description: rf.complaintDescription || null,
         suggested_severity: rf.suggestedSeverity || null,
         suggested_next_action: rf.suggestedNextAction || null,
@@ -123,6 +129,7 @@ export default function RightAIBar() {
     const [isLoading, setIsLoading] = useState(false);
     const [progressText, setProgressText] = useState('');
     const [progressVal, setProgressVal] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
 
     const [messages, setMessages] = useState([
         {
@@ -164,6 +171,7 @@ export default function RightAIBar() {
                     const mappedReduxFields = mapBackendFieldsToRedux(f, currentFields);
 
                     dispatch(updatePartialFields({ fields: mappedReduxFields }));
+                    dispatch(setAuditResults({ duplicate_flag: data.duplicate_flag, notes: data.duplicate_notes }));
 
                     setMessages((prev) => [
                         ...prev,
@@ -189,6 +197,7 @@ export default function RightAIBar() {
                     const mappedReduxFields = mapBackendFieldsToRedux(f, currentFields);
 
                     dispatch(populateExtractedComplaint({ fields: mappedReduxFields }));
+                    dispatch(setAuditResults({ duplicate_flag: data.duplicate_flag, notes: data.duplicate_notes }));
 
                     setMessages((prev) => [
                         ...prev,
@@ -313,6 +322,28 @@ export default function RightAIBar() {
         }
     };
 
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        const files = e.dataTransfer?.files;
+        if (files && files[0]) {
+            handleFileUpload({ target: { files: [files[0]] } });
+        }
+    };
+
     return (
         <div className="w-full md:w-[500px] lg:w-[540px] bg-slate-50 flex flex-col h-screen border-l border-slate-200/80">
 
@@ -329,7 +360,27 @@ export default function RightAIBar() {
                         <p className="text-xs text-slate-500 font-medium mt-0.5">Drop complaint files or paste text below.</p>
                     </div>
                 </div>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span>
+            </div>
+
+            {/* Drag & Drop Upload Zone Card */}
+            <div className="px-5 pt-4 bg-slate-50">
+                <label
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center text-center cursor-pointer transition shadow-xs ${
+                        isDragging ? 'border-indigo-600 bg-indigo-50' : 'border-indigo-200 hover:border-indigo-400 bg-white'
+                    }`}
+                >
+                    <input type="file" accept=".pdf,.docx,.txt,.eml" className="hidden" onChange={handleFileUpload} />
+                    <UploadCloud className="w-6 h-6 text-indigo-600 mb-1" />
+                    <p className="text-xs font-bold text-slate-800">
+                        Upload complaint document, or <span className="text-indigo-600 underline">click to browse</span>
+                    </p>
+                    <p className="text-[11px] text-slate-400 font-medium mt-1">
+                        Supported formats: PDF, DOCX, TXT, EML — Max file size: 10MB
+                    </p>
+                </label>
             </div>
 
             {/* Messages Stream */}
@@ -409,7 +460,7 @@ export default function RightAIBar() {
                                 handleSendPrompt();
                             }
                         }}
-                        placeholder="Type a message or paste a complaint..."
+                        placeholder="Ask me anything about this complaint..."
                         className="flex-1 bg-transparent px-2.5 py-1.5 text-sm text-slate-800 focus:outline-none placeholder-slate-400"
                     />
                     <button
@@ -421,6 +472,10 @@ export default function RightAIBar() {
                         <CheckCircle2 className="w-4.5 h-4.5" />
                     </button>
                 </div>
+                {/* AI Disclaimer */}
+                <p className="text-[11px] text-slate-400 text-center mt-2.5 font-medium">
+                    AI responses may contain errors. Please verify information.
+                </p>
             </div>
         </div>
     );

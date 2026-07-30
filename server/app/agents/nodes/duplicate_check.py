@@ -21,21 +21,24 @@ Output ONLY valid JSON.
 
 def duplicate_check_node(state: ComplaintState) -> ComplaintState:
     fields = state.get("current_fields", {})
+    batch_num = fields.get("batch_lot_number")
     
-    if settings.GROQ_API_KEY and settings.GROQ_API_KEY.startswith("gsk_") and settings.GROQ_API_KEY != "gsk_your_groq_api_token_here":
-        try:
-            client = Groq(api_key=settings.GROQ_API_KEY)
-            client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": DUPLICATE_CHECK_SYSTEM_PROMPT},
-                    {"role": "user", "content": f"Audit complaint record:\n{json.dumps(fields)}"}
-                ],
-                temperature=0.1,
-                response_format={"type": "json_object"}
-            )
-        except Exception as e:
-            logger.error(f"Duplicate Check LLM call failed: {e}")
+    is_duplicate = False
+    notes = "No duplicate batch records detected."
 
-    state["current_fields"] = fields
+    if batch_num and batch_num.strip() not in ["N/A", "Not Provided", ""]:
+        try:
+            from app.core.database import SessionLocal
+            from app.models.complaint import Complaint
+            db = SessionLocal()
+            existing_count = db.query(Complaint).filter(Complaint.batch_lot_number == batch_num.strip()).count()
+            db.close()
+            if existing_count > 0:
+                is_duplicate = True
+                notes = f"Duplicate Batch Flag: Batch #{batch_num.strip()} already has {existing_count} prior complaint(s) logged in the QMS Ledger."
+        except Exception as e:
+            logger.error(f"DB Duplicate query failed: {e}")
+
+    state["duplicate_flag"] = is_duplicate
+    state["duplicate_notes"] = notes
     return state

@@ -22,6 +22,7 @@ Return a JSON object:
      "originating_site_block": "new value if mentioned, else omit",
      "impacted_npm": "new value if mentioned, else omit",
      "complaint_category": "new value if mentioned, else omit",
+     "complaint_date": "new value if mentioned, else omit",
      "complaint_description": "new value if mentioned, else omit"
   },
   "confirmation_message": "Friendly confirmation stating exact updates (e.g., 'Got it. I have updated the Batch / Lot Number to \"BMX240602\" and the Affected Quantity to \"48 capcules\" in the form.')"

@@ -14,6 +14,7 @@ class ComplaintFields(BaseModel):
     originating_site_block: Optional[str] = "Manufacturing"
     impacted_npm: Optional[str] = None
     complaint_category: Optional[str] = None
+    complaint_date: Optional[str] = None
     complaint_description: Optional[str] = None
     suggested_severity: Optional[str] = "Major"
     suggested_next_action: Optional[str] = None
@@ -31,6 +32,8 @@ class ComplaintExtractResponse(BaseModel):
     message: str
     extracted_fields: ComplaintFields
     updated_field_keys: List[str] = []
+    duplicate_flag: bool = False
+    duplicate_notes: Optional[str] = None
 
 class ComplaintCreate(ComplaintFields):
     pass

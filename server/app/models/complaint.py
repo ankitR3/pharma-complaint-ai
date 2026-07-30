@@ -25,6 +25,7 @@ class Complaint(Base):
 
     # 4. Defect Analysis
     complaint_category = Column(String, nullable=True)
+    complaint_date = Column(String, nullable=True)
     complaint_description = Column(Text, nullable=True)
 
     # 5. AI Copilot Risk Assessment

@@ -6,3 +6,5 @@ class ComplaintState(TypedDict):
     current_fields: Dict[str, Any]
     updated_field_keys: List[str]
     copilot_message: str
+    duplicate_flag: Optional[bool]
+    duplicate_notes: Optional[str]

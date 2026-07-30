@@ -13,6 +13,7 @@ const initialState = {
     originatingBlock: '',
     impactedNpm: '',
     complaintCategory: '',
+    complaintDate: '',
     complaintDescription: '',
     // Risk Assessment fields
     suggestedSeverity: '',
