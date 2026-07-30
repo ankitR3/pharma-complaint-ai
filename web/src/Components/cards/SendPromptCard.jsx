@@ -49,7 +49,7 @@ function mapReduxFieldsToBackend(rf) {
     };
 }
 
-export const handleSendPrompt = async (textToSend, { inputText, setInputText, setMessages, setIsLoading, setProgressText, currentFields, status, dispatch }) => {
+export const handleSendPrompt = async (textToSend, { inputText, setInputText, setMessages, setIsLoading, setProgressText, setProgressVal, currentFields, status, dispatch }) => {
     const query = textToSend || inputText;
     if (!query.trim()) return;
 
@@ -58,6 +58,11 @@ export const handleSendPrompt = async (textToSend, { inputText, setInputText, se
     if (!textToSend) setInputText('');
     setIsLoading(true);
     setProgressText('Analyzing document content and extracting key details...');
+    if (setProgressVal) setProgressVal(15);
+
+    const timer = setInterval(() => {
+        if (setProgressVal) setProgressVal((v) => (v >= 90 ? 90 : v + 15));
+    }, 200);
 
     const isFollowUpUpdate =
         status === 'Ready to Commit' ||
@@ -152,6 +157,11 @@ export const handleSendPrompt = async (textToSend, { inputText, setInputText, se
             ]);
         }
     } finally {
-        setIsLoading(false);
+        clearInterval(timer);
+        if (setProgressVal) setProgressVal(100);
+        setTimeout(() => {
+            setIsLoading(false);
+            if (setProgressVal) setProgressVal(0);
+        }, 300);
     }
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import LeftFormbar from './Components/layout/LeftFormbar';
-import RightAIBar from './Components/layout/RightAIBar';
+import RightAISection from './Components/layout/RightAISection';
 
 function App() {
   return (
@@ -9,7 +9,7 @@ function App() {
       <LeftFormbar />
 
       {/* Right AI Copilot Bar */}
-      <RightAIBar />
+      <RightAISection />
     </div>
   );
 }

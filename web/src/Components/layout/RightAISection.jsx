@@ -171,9 +171,11 @@ export default function RightAIBar() {
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                             <div
-                                className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
-                                style={{ width: `${progressVal || 40}%` }}
-                            ></div>
+                                className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300 relative overflow-hidden"
+                                style={{ width: `${progressVal || 15}%` }}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -189,7 +191,7 @@ export default function RightAIBar() {
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                handleSendPrompt(undefined, { inputText, setInputText, setMessages, setIsLoading, setProgressText, currentFields, status, dispatch });
+                                handleSendPrompt(undefined, { inputText, setInputText, setMessages, setIsLoading, setProgressText, setProgressVal, currentFields, status, dispatch });
                             }
                         }}
                         placeholder="Ask me anything about this complaint..."
@@ -197,7 +199,7 @@ export default function RightAIBar() {
                     />
                     <button
                         type="button"
-                        onClick={() => handleSendPrompt(undefined, { inputText, setInputText, setMessages, setIsLoading, setProgressText, currentFields, status, dispatch })}
+                        onClick={() => handleSendPrompt(undefined, { inputText, setInputText, setMessages, setIsLoading, setProgressText, setProgressVal, currentFields, status, dispatch })}
                         disabled={!inputText.trim()}
                         className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-md transition shadow-xs cursor-pointer"
                     >

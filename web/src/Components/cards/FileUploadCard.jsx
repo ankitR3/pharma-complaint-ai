@@ -64,9 +64,6 @@ export const handleFileUpload = async (e, { setMessages, setIsLoading, setProgre
             body: formData,
         });
 
-        clearInterval(timer);
-        setProgressVal(100);
-
         if (response.ok) {
             const data = await response.json();
             const f = data.extracted_fields || {};
@@ -82,9 +79,6 @@ export const handleFileUpload = async (e, { setMessages, setIsLoading, setProgre
             throw new Error('Upload API error');
         }
     } catch (err) {
-        clearInterval(timer);
-        setProgressVal(100);
-
         const parsedFromFileText = parseTextDynamically(fileTextContent || file.name, currentFields);
 
         dispatch(populateExtractedComplaint({ fields: parsedFromFileText }));
@@ -98,7 +92,11 @@ export const handleFileUpload = async (e, { setMessages, setIsLoading, setProgre
             },
         ]);
     } finally {
-        setIsLoading(false);
-        setProgressVal(0);
+        clearInterval(timer);
+        if (setProgressVal) setProgressVal(100);
+        setTimeout(() => {
+            setIsLoading(false);
+            if (setProgressVal) setProgressVal(0);
+        }, 300);
     }
 };
