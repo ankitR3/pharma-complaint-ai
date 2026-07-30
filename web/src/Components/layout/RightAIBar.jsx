@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { populateExtractedComplaint, updatePartialFields } from '../store/formSlice';
 import { setAuditResults } from '../store/aiSlice';
-import { Paperclip, CheckCircle2, User, FlaskConical, FileText, UploadCloud } from 'lucide-react';
+import { Paperclip, CheckCircle2, User, FlaskConical, FileText, UploadCloud, Info } from 'lucide-react';
 
 // Dynamic Text Parser - Zero hardcoded string fallbacks
 function parseTextDynamically(text = '', current = {}) {
@@ -350,7 +350,7 @@ export default function RightAIBar() {
             {/* Header */}
             <div className="p-5 bg-white border-b border-slate-200/80 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-600 border border-indigo-700 flex items-center justify-center text-white shadow-xs">
+                    <div className="w-9 h-9 rounded-md bg-indigo-600 border border-indigo-700 flex items-center justify-center text-white shadow-xs">
                         <FlaskConical className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -363,24 +363,53 @@ export default function RightAIBar() {
             </div>
 
             {/* Drag & Drop Upload Zone Card */}
-            <div className="px-5 pt-4 bg-slate-50">
+            <div className="px-5 pt-4 bg-slate-50 space-y-3">
                 <label
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center text-center cursor-pointer transition shadow-xs ${
-                        isDragging ? 'border-indigo-600 bg-indigo-50' : 'border-indigo-200 hover:border-indigo-400 bg-white'
+                    className={`border-2 border-dashed rounded-md p-5 flex flex-col items-center justify-center text-center cursor-pointer transition shadow-xs ${
+                        isDragging ? 'border-indigo-600 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 bg-white'
                     }`}
                 >
                     <input type="file" accept=".pdf,.docx,.txt,.eml" className="hidden" onChange={handleFileUpload} />
-                    <UploadCloud className="w-6 h-6 text-indigo-600 mb-1" />
+                    <UploadCloud className="w-7 h-7 text-slate-500 mb-1.5" />
                     <p className="text-xs font-bold text-slate-800">
-                        Upload complaint document, or <span className="text-indigo-600 underline">click to browse</span>
+                        Drag & drop complaint document here
                     </p>
-                    <p className="text-[11px] text-slate-400 font-medium mt-1">
-                        Supported formats: PDF, DOCX, TXT, EML — Max file size: 10MB
+                    <p className="text-xs font-medium text-slate-500 mt-0.5">
+                        or <span className="text-indigo-600 font-semibold underline">click to browse</span>
                     </p>
                 </label>
+
+                {/* OR Divider Line */}
+                <div className="relative flex py-1 items-center">
+                    <div className="flex-grow border-t border-slate-200"></div>
+                    <span className="shrink-0 mx-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase">OR</span>
+                    <div className="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                {/* Paste Complaint Text / Email Button */}
+                <button
+                    type="button"
+                    onClick={() => {
+                        const inputEl = document.querySelector('input[placeholder*="Ask me"]');
+                        if (inputEl) inputEl.focus();
+                    }}
+                    className="w-full py-2.5 bg-white border border-slate-200 rounded-md text-slate-700 text-xs font-semibold flex items-center justify-center gap-2 shadow-xs focus:outline-none focus:ring-0 active:bg-white select-none cursor-default"
+                >
+                    <FileText className="w-4 h-4 text-slate-500" />
+                    Paste Complaint Text / Email
+                </button>
+
+                {/* Green Supported Formats Info Card */}
+                <div className="bg-emerald-50/80 border border-emerald-200 rounded-md p-3 flex items-start gap-2.5 text-xs text-emerald-800 shadow-xs">
+                    <Info className="w-4.5 h-4.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                        <p className="font-semibold text-emerald-900">Supported formats: PDF, DOCX, TXT, EML</p>
+                        <p className="text-[11px] text-emerald-700 mt-0.5 font-medium">Max file size: 10MB</p>
+                    </div>
+                </div>
             </div>
 
             {/* Messages Stream */}
@@ -391,14 +420,14 @@ export default function RightAIBar() {
                         className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         {msg.sender === 'ai' && (
-                            <div className="w-8 h-8 rounded-lg bg-indigo-100/80 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
+                            <div className="w-8 h-8 rounded-md bg-indigo-100/80 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
                                 <FlaskConical className="w-4.5 h-4.5 text-indigo-600" />
                             </div>
                         )}
 
                         {/* Document File Card Message */}
                         {msg.file ? (
-                            <div className="bg-white border border-slate-200 rounded-lg p-3.5 flex items-center gap-3 shadow-xs max-w-[85%]">
+                            <div className="bg-white border border-slate-200 rounded-md p-3.5 flex items-center gap-3 shadow-xs max-w-[85%]">
                                 <div className="w-9 h-9 rounded-md bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
                                     <FileText className="w-5 h-5" />
                                 </div>
@@ -409,7 +438,7 @@ export default function RightAIBar() {
                             </div>
                         ) : (
                             <div
-                                className={`p-4 rounded-lg max-w-[85%] text-sm leading-relaxed shadow-xs ${msg.sender === 'user'
+                                className={`p-4 rounded-md max-w-[85%] text-sm leading-relaxed shadow-xs ${msg.sender === 'user'
                                         ? 'bg-indigo-600 text-white'
                                         : 'bg-white text-slate-800 border border-slate-200/80'
                                     }`}
@@ -419,7 +448,7 @@ export default function RightAIBar() {
                         )}
 
                         {msg.sender === 'user' && (
-                            <div className="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                            <div className="w-8 h-8 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
                                 <User className="w-4 h-4" />
                             </div>
                         )}
@@ -428,7 +457,7 @@ export default function RightAIBar() {
 
                 {/* OCR / Document Extraction Progress Bar */}
                 {isLoading && (
-                    <div className="bg-white border border-slate-200/80 rounded-lg p-4 max-w-[85%] space-y-2 shadow-xs">
+                    <div className="bg-white border border-slate-200/80 rounded-md p-4 max-w-[85%] space-y-2 shadow-xs">
                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                             <FlaskConical className="w-4 h-4 text-indigo-600 animate-spin" />
                             <span>{progressText || 'Extracting complaint details...'}</span>
@@ -445,11 +474,7 @@ export default function RightAIBar() {
 
             {/* Input Footer */}
             <div className="p-4 bg-white border-t border-slate-200/80">
-                <div className="relative flex items-center border border-indigo-400 rounded-lg bg-white p-1.5 focus-within:border-indigo-600 transition shadow-xs">
-                    <label className="p-2 text-slate-400 hover:text-slate-600 rounded cursor-pointer" title="Attach File">
-                        <input type="file" accept=".pdf,.docx,.txt,.eml" className="hidden" onChange={handleFileUpload} />
-                        <Paperclip className="w-4.5 h-4.5" />
-                    </label>
+                <div className="relative flex items-center border border-slate-200 rounded-md bg-white p-1.5 focus-within:border-slate-300 transition shadow-xs">
                     <input
                         type="text"
                         value={inputText}
@@ -467,7 +492,7 @@ export default function RightAIBar() {
                         type="button"
                         onClick={() => handleSendPrompt()}
                         disabled={!inputText.trim()}
-                        className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded transition shadow-xs cursor-pointer"
+                        className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-md transition shadow-xs cursor-pointer"
                     >
                         <CheckCircle2 className="w-4.5 h-4.5" />
                     </button>
