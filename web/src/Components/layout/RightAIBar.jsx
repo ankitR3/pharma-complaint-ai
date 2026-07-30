@@ -69,9 +69,8 @@ export default function RightAIBar() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-md p-5 flex flex-col items-center justify-center text-center cursor-pointer transition shadow-xs ${
-                        isDragging ? 'border-indigo-600 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 bg-white'
-                    }`}
+                    className={`border-2 border-dashed rounded-md p-5 flex flex-col items-center justify-center text-center cursor-pointer transition shadow-xs ${isDragging ? 'border-indigo-600 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 bg-white'
+                        }`}
                 >
                     <input type="file" accept=".pdf,.docx,.txt,.eml" className="hidden" onChange={(e) => handleFileUpload(e, { setMessages, setIsLoading, setProgressText, setProgressVal, currentFields, dispatch })} />
                     <UploadCloud className="w-7 h-7 text-slate-500 mb-1.5" />
@@ -140,8 +139,8 @@ export default function RightAIBar() {
                         ) : (
                             <div
                                 className={`p-4 rounded-md max-w-[85%] text-sm leading-relaxed shadow-xs ${msg.sender === 'user'
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'bg-white text-slate-800 border border-slate-200/80'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-white text-slate-800 border border-slate-200/80'
                                     }`}
                             >
                                 {msg.text}
@@ -158,10 +157,17 @@ export default function RightAIBar() {
 
                 {/* OCR / Document Extraction Progress Bar */}
                 {isLoading && (
-                    <div className="bg-white border border-slate-200/80 rounded-md p-4 max-w-[85%] space-y-2 shadow-xs">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                            <FlaskConical className="w-4 h-4 text-indigo-600 animate-spin" />
-                            <span>{progressText || 'Extracting complaint details...'}</span>
+                    <div className="bg-white border border-slate-200/80 rounded-md p-4 max-w-[90%] space-y-2.5 shadow-xs">
+                        <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                            <FlaskConical className="w-4 h-4 text-indigo-600 animate-spin shrink-0 mt-0.5" />
+                            <div>
+                                <p className="font-semibold text-slate-800 text-xs">
+                                    {progressText || 'Analyzing document content and extracting key details...'}
+                                </p>
+                                <p className="text-[11px] text-slate-500 font-medium mt-1">
+                                    Please wait, this may take a few moments.
+                                </p>
+                            </div>
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                             <div

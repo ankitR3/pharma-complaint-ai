@@ -36,7 +36,7 @@ export const handleFileUpload = async (e, { setMessages, setIsLoading, setProgre
     };
     setMessages((prev) => [...prev, fileMsg]);
     setIsLoading(true);
-    setProgressText('Extracting tabular data via OCR...');
+    setProgressText('Analyzing document content and extracting key details...');
     setProgressVal(25);
 
     const timer = setInterval(() => {

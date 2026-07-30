@@ -52,7 +52,7 @@ export const handleSendPrompt = async (textToSend, { inputText, setInputText, se
     setMessages((prev) => [...prev, userMsg]);
     if (!textToSend) setInputText('');
     setIsLoading(true);
-    setProgressText('Processing natural language request...');
+    setProgressText('Analyzing document content and extracting key details...');
 
     const isFollowUpUpdate =
         status === 'Ready to Commit' ||

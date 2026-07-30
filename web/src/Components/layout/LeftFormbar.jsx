@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { resetForm } from '../store/formSlice';
 import { resetAiState } from '../store/aiSlice';
-import { FlaskConical, Download, RotateCcw, CheckCircle2, AlertCircle, X, Database, Lock, Search, ShieldCheck, Save, Eye } from 'lucide-react';
+import { FlaskConical, Download, RotateCcw, CheckCircle2, AlertCircle, X, Database, Lock, Search, ShieldCheck, Save, Eye, Trash2 } from 'lucide-react';
 import { handleDownloadPDF } from '../cards/DownloadPDFCard';
 import { handleCommit } from '../cards/CommitCard';
 import { handleOpenHistoricalRecord } from '../cards/HistoricalRecordCard';
@@ -20,6 +20,7 @@ export default function LeftFormbar() {
   const [complaintHistory, setComplaintHistory] = useState([]);
   const [historySearch, setHistorySearch] = useState('');
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({ show: false, type: 'single', id: null, refId: null });
 
   const fetchComplaintHistory = async () => {
     setIsLoadingHistory(true);
@@ -28,12 +29,68 @@ export default function LeftFormbar() {
       const res = await fetch('http://localhost:8000/api/complaints/');
       if (res.ok) {
         const data = await res.json();
-        setComplaintHistory(data);
+        setComplaintHistory(Array.isArray(data) ? data : []);
+      } else {
+        setComplaintHistory([]);
       }
     } catch (err) {
       console.error('Error fetching complaint history:', err);
+      setComplaintHistory([]);
     } finally {
       setIsLoadingHistory(false);
+    }
+  };
+
+  const openDeleteModal = (id, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    setDeleteConfirmModal({ show: true, type: 'single', id, refId: `QMS-2026-00${id}` });
+  };
+
+  const openClearAllModal = () => {
+    setDeleteConfirmModal({ show: true, type: 'all', id: null, refId: null });
+  };
+
+  const handleConfirmDelete = async () => {
+    const targetType = deleteConfirmModal.type;
+    const targetId = deleteConfirmModal.id;
+    const targetRefId = deleteConfirmModal.refId;
+
+    // Immediately close modal & update UI state (0ms latency)
+    setDeleteConfirmModal({ show: false, type: 'single', id: null, refId: null });
+
+    if (targetType === 'single' && targetId) {
+      // Optimistic UI Removal
+      setComplaintHistory((prev) => prev.filter((item) => item.id !== targetId));
+      showNotification(`Deleted record ${targetRefId} from database.`, 'warning');
+
+      try {
+        const res = await fetch(`http://localhost:8000/api/complaints/${targetId}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) {
+          fetchComplaintHistory();
+          showNotification(`Failed to delete record ${targetRefId} from database.`, 'error');
+        }
+      } catch (err) {
+        console.error('Error deleting complaint record:', err);
+        fetchComplaintHistory();
+      }
+    } else if (targetType === 'all') {
+      // Optimistic UI Clear
+      setComplaintHistory([]);
+      showNotification('Cleared all history records from database.', 'warning');
+
+      try {
+        const res = await fetch('http://localhost:8000/api/complaints/all', {
+          method: 'DELETE',
+        });
+        if (!res.ok) {
+          fetchComplaintHistory();
+        }
+      } catch (err) {
+        console.error('Error clearing complaint history:', err);
+        fetchComplaintHistory();
+      }
     }
   };
 
@@ -54,19 +111,18 @@ export default function LeftFormbar() {
     <div className="flex-1 bg-slate-50/40 overflow-y-auto h-screen p-6 md:p-8 custom-scrollbar relative">
       {/* Sleek UI Toast Notification Banner */}
       {toast.show && (
-        <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-md shadow-lg border flex items-center gap-3 transition-all duration-300 ${
-          toast.type === 'success' 
-            ? 'bg-emerald-950 text-emerald-100 border-emerald-800' 
-            : toast.type === 'warning'
+        <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-md shadow-lg border flex items-center gap-3 transition-all duration-300 ${toast.type === 'success'
+          ? 'bg-emerald-950 text-emerald-100 border-emerald-800'
+          : toast.type === 'warning'
             ? 'bg-amber-950 text-amber-100 border-amber-800'
             : 'bg-slate-900 text-slate-100 border-slate-700'
-        }`}>
+          }`}>
           {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
           {toast.type === 'warning' && <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />}
           {toast.type === 'info' && <FlaskConical className="w-5 h-5 text-indigo-400 shrink-0" />}
           <span className="text-sm font-medium">{toast.message}</span>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setToast({ show: false, message: '', type: 'success' })}
             className="p-1 hover:bg-white/10 rounded transition text-slate-400 hover:text-white ml-2"
           >
@@ -76,7 +132,7 @@ export default function LeftFormbar() {
       )}
 
       <div className="max-w-4xl mx-auto space-y-6">
-        
+
         {/* Header Section */}
         <div className="bg-white border border-slate-200/80 rounded-md p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -400,7 +456,7 @@ export default function LeftFormbar() {
       {showHistoryModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            
+
             {/* Modal Header */}
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-3">
@@ -427,18 +483,31 @@ export default function LeftFormbar() {
             </div>
 
             {/* Filter / Search Bar */}
-            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center gap-3">
-              <div className="relative flex-1">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-3">
+              <div className="relative flex-1 min-w-[240px]">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={historySearch}
                   onChange={(e) => setHistorySearch(e.target.value)}
                   placeholder="Filter records by Product, Customer Name, Batch #, or Category..."
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-slate-800"
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:border-indigo-500 text-slate-800"
                 />
               </div>
-              <span className="text-xs text-slate-500 font-medium px-2">
+
+              {complaintHistory.length > 0 && (
+                <button
+                  type="button"
+                  onClick={openClearAllModal}
+                  className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-md flex items-center gap-1.5 transition cursor-pointer shadow-xs shrink-0"
+                  title="Delete all complaint history records from database"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                  Clear All History
+                </button>
+              )}
+
+              <span className="text-xs text-slate-500 font-medium px-2 shrink-0">
                 Total: {complaintHistory.length} Record(s)
               </span>
             </div>
@@ -457,7 +526,7 @@ export default function LeftFormbar() {
                   <p className="text-xs text-slate-400">Extract a complaint using AIVOA Copilot and click "Commit to QMS Ledger".</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto border border-slate-200 rounded-lg">
+                <div className="overflow-x-auto border border-slate-200 rounded-md">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="bg-slate-100 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
                       <tr>
@@ -468,13 +537,13 @@ export default function LeftFormbar() {
                         <th className="p-3">Category</th>
                         <th className="p-3">Severity</th>
                         <th className="p-3">Committed Date</th>
-                        <th className="p-3">Action</th>
+                        <th className="p-3 text-center">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 text-slate-800">
-                      {complaintHistory
+                      {(Array.isArray(complaintHistory) ? complaintHistory : [])
                         .filter((c) => {
-                          const query = historySearch.toLowerCase();
+                          const query = (historySearch || '').toLowerCase();
                           return (
                             !query ||
                             (c.product_name || '').toLowerCase().includes(query) ||
@@ -500,26 +569,37 @@ export default function LeftFormbar() {
                             <td className="p-3 font-mono font-semibold text-slate-900">{item.batch_lot_number || 'N/A'}</td>
                             <td className="p-3">{item.complaint_category || 'N/A'}</td>
                             <td className="p-3">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                item.suggested_severity === 'Critical'
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.suggested_severity === 'Critical'
                                   ? 'bg-rose-100 text-rose-700'
                                   : item.suggested_severity === 'Major'
-                                  ? 'bg-amber-100 text-amber-700'
-                                  : 'bg-slate-100 text-slate-700'
-                              }`}>
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : 'bg-slate-100 text-slate-700'
+                                }`}>
                                 {item.suggested_severity || 'Major'}
                               </span>
                             </td>
-                            <td className="p-3 text-slate-500">{new Date(item.created_at).toLocaleString()}</td>
+                            <td className="p-3 text-slate-500">
+                              {item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A'}
+                            </td>
                             <td className="p-3">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenHistoricalRecord(item, dispatch, setShowHistoryModal, showNotification)}
-                                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[11px] font-semibold flex items-center gap-1 cursor-pointer shadow-xs transition"
-                                title="Open full complaint details in form"
-                              >
-                                <Eye className="w-3.5 h-3.5 text-white" /> Open
-                              </button>
+                              <div className="flex items-center gap-2 justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenHistoricalRecord(item, dispatch, setShowHistoryModal, showNotification)}
+                                  className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[11px] font-semibold flex items-center gap-1 cursor-pointer shadow-xs transition"
+                                  title="Open full complaint details in form"
+                                >
+                                  <Eye className="w-3.5 h-3.5 text-white" /> Open
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => openDeleteModal(item.id, e)}
+                                  className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-semibold flex items-center gap-1 cursor-pointer shadow-xs transition"
+                                  title="Delete this complaint record from database"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-white" /> Delete
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -534,18 +614,58 @@ export default function LeftFormbar() {
               <div className="flex items-center gap-2 text-slate-500">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>
-                  <strong>Compliance Note:</strong> In accordance with FDA 21 CFR Part 11 & GMP regulations, all committed QMS records are immutable. No record can be modified or deleted.
+                  <strong>Compliance Note:</strong> Administrative override enabled for QMS ledger maintenance.
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowHistoryModal(false)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs transition cursor-pointer"
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-md text-xs transition cursor-pointer"
               >
                 Close Ledger History
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Dialog Modal */}
+      {deleteConfirmModal.show && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-md shadow-2xl border border-slate-200 w-full max-w-md p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-md bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
+                <AlertCircle className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Confirm Deletion</h3>
+                <p className="text-xs text-slate-500 font-medium">QMS Database Action</p>
+              </div>
+            </div>
+
+            <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+              {deleteConfirmModal.type === 'single'
+                ? `Do you want to delete complaint record ${deleteConfirmModal.refId}?`
+                : 'Do you want to delete all complaint history from the database?'}
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmModal({ show: false, type: 'single', id: null, refId: null })}
+                className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-md text-xs transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-md text-xs transition cursor-pointer shadow-xs"
+              >
+                Yes, Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

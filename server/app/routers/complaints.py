@@ -9,7 +9,7 @@ from app.schemas.complaint import (
     ComplaintExtractResponse,
     ComplaintFields,
 )
-from app.services.complaint_service import create_complaint, get_all_complaints
+from app.services.complaint_service import create_complaint, get_all_complaints, delete_complaint, clear_all_complaints
 from app.services.document_service import extract_text_from_file
 from app.agents.graph import run_extraction_agent, run_update_agent
 
@@ -23,6 +23,19 @@ def submit_complaint(payload: ComplaintCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=list[ComplaintResponse])
 def list_complaints(db: Session = Depends(get_db)):
     return get_all_complaints(db)
+
+@router.delete("/all")
+@router.delete("/")
+def clear_all_history(db: Session = Depends(get_db)):
+    count = clear_all_complaints(db)
+    return {"success": True, "message": f"Cleared {count} complaint history records"}
+
+@router.delete("/{complaint_id}")
+def delete_single_complaint(complaint_id: int, db: Session = Depends(get_db)):
+    success = delete_complaint(db, complaint_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Complaint record not found")
+    return {"success": True, "message": f"Complaint QMS-2026-00{complaint_id} deleted successfully"}
 
 @router.post("/extract", response_model=ComplaintExtractResponse)
 def extract_complaint(payload: ComplaintExtractRequest):
